@@ -1,0 +1,323 @@
+{
+  "name": "Tools - Asistente",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "http://localhost:3000/products",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "6cf3caf4-8aa4-463a-ab40-fde820b0ebbd",
+      "name": "Obtener productos"
+    },
+    {
+      "parameters": {
+        "path": "my-store/products",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        0
+      ],
+      "id": "7d0f5159-a414-4b6b-a6be-9a37f6229db0",
+      "name": "Webhook - Obtener productos",
+      "webhookId": "REGENERATE_ON_IMPORT"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "d7be08be-cb80-4a5a-974c-c9d9af212c5f",
+      "name": "Responder productos"
+    },
+    {
+      "parameters": {
+        "content": "## get_products\nObtiene productos de mi backend",
+        "height": 288,
+        "width": 912
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        -96
+      ],
+      "id": "a95baabb-ff63-4f9a-a7bb-68f8b1d2eac3",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "my-store/orders",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -176,
+        384
+      ],
+      "id": "638896ac-c1db-4874-a714-43f7fa56d61b",
+      "name": "Webhook - Obtener orden por ID",
+      "webhookId": "REGENERATE_ON_IMPORT"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        816,
+        272
+      ],
+      "id": "9b1a0254-ef51-4ced-9d5c-b4406fb9cb1e",
+      "name": "Responder con la orden"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "105283ad-0683-4bee-9a06-c66a47655dd9",
+              "leftValue": "={{ $json.body.orderId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        384
+      ],
+      "id": "46d62ec7-5059-467f-922b-3ad419e4030b",
+      "name": "¿Existe orderId en Body?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"ok\": false,\n  \"errors\": \"orderId es requerido\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        272,
+        560
+      ],
+      "id": "b5978fcd-e43f-4f33-95b5-07ebe670e4ed",
+      "name": "Responder bad request"
+    },
+    {
+      "parameters": {
+        "url": "=http://localhost:3000/orders/{{ $json.body.orderId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        288,
+        288
+      ],
+      "id": "40909b85-ffd7-408a-8dbd-11ab58c9549b",
+      "name": "Obtener order por ID",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1648a17e-53c9-4596-8d78-4e66d41651de",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        288
+      ],
+      "id": "b3ac1313-6768-44ec-b5ea-c22472b68832",
+      "name": "¿La orden fue encontrada?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"ok\": false,\n  \"errors\": \"La orden no fue encontrada\"\n}",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        816,
+        576
+      ],
+      "id": "f2edd3d4-ef11-4888-a0e3-55d9a6ca8001",
+      "name": "Responder not found"
+    },
+    {
+      "parameters": {
+        "content": "## get_order_by_id\nObtiene una orden por el ID",
+        "height": 560,
+        "width": 1328,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        224
+      ],
+      "id": "3133628e-3997-4c24-a672-00b3610d5b0f",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Obtener productos": {
+      "main": [
+        [
+          {
+            "node": "Obtener productos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener productos": {
+      "main": [
+        [
+          {
+            "node": "Responder productos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Obtener orden por ID": {
+      "main": [
+        [
+          {
+            "node": "¿Existe orderId en Body?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Existe orderId en Body?": {
+      "main": [
+        [
+          {
+            "node": "Obtener order por ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder bad request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener order por ID": {
+      "main": [
+        [
+          {
+            "node": "¿La orden fue encontrada?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿La orden fue encontrada?": {
+      "main": [
+        [
+          {
+            "node": "Responder con la orden",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder not found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a26248ad-b1c5-4f67-a6f2-e3e40cccc4f4",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "dRIb01A1cYbBb4Cd",
+  "tags": []
+}
